@@ -1,7 +1,7 @@
 package com.porto.libraryapi.service.impl;
 
 import com.porto.libraryapi.model.entity.Book;
-import com.porto.libraryapi.repository.BookRepository;
+import com.porto.libraryapi.model.repository.BookRepository;
 import com.porto.libraryapi.service.BookService;
 import org.springframework.stereotype.Service;
 
