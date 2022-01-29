@@ -1,5 +1,6 @@
 package com.porto.libraryapi.service;
 
+import com.porto.libraryapi.exception.BusinessException;
 import com.porto.libraryapi.model.entity.Book;
 import com.porto.libraryapi.model.repository.BookRepository;
 import com.porto.libraryapi.service.impl.BookServiceImpl;
@@ -26,7 +27,7 @@ class BookServiceTest {
     @DisplayName("Deve salvar um book")
     @Test
     void saveBookTest(){
-        Book book = Book.builder().title("Senhor dos Aneis").isbn("098").author("Cris Waalter").build();
+        Book book = getBookValid();
         Mockito.when(bookRepository.save(book)).thenReturn(
                 Book.builder().id(11L).title("Senhor dos Aneis").isbn("098").author("Cris Waalter").build()
         );
@@ -37,6 +38,21 @@ class BookServiceTest {
         Assertions.assertThat(bookSaved.getIsbn()).isEqualTo("098");
         Assertions.assertThat(bookSaved.getAuthor()).isEqualTo("Cris Waalter");
 
+    }
+
+    private Book getBookValid() {
+        return Book.builder().title("Senhor dos Aneis").isbn("098").author("Cris Waalter").build();
+    }
+
+    @Test
+    @DisplayName("Deve lancar um erro de negocio ao tentar cadastrar ISBN duplicado")
+    public void shouldNumberSaveBookWithDuplicateISBN(){
+        Book book = getBookValid();
+        Mockito.when(bookRepository.existsByIsbn(Mockito.anyString())).thenReturn(true);
+        Throwable exception = Assertions.catchThrowable(() -> this.bookService.save(book));
+        Assertions.assertThat(exception).isInstanceOf(BusinessException.class).hasMessage("ISBN já existente");
+        //Verifique que meu repository nunca vai executar o metodo save ,com esse parametro
+        Mockito.verify(bookRepository,Mockito.never()).save(book);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.porto.libraryapi;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.porto.libraryapi.DTO.BookDTO;
 import com.porto.libraryapi.exception.BusinessException;
@@ -20,6 +21,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -77,7 +80,7 @@ public class BookControllerTest {
     }
 
     @Test
-    @DisplayName("Deve lanacr um erros tentar cadastrar um livro com um isbn já utilizado")
+    @DisplayName("Deve lançar um erros tentar cadastrar um livro com um isbn já utilizado")
     public void createBookwithIsbnDuplicate()throws Exception{
         BookDTO bookDTOJson = createBookDto();
         String json = new ObjectMapper().writeValueAsString(bookDTOJson);
@@ -93,12 +96,111 @@ public class BookControllerTest {
                 .andExpect(jsonPath("erros",hasSize(1)))
                 .andExpect(jsonPath("erros[0]").value("ISBN já existente"));
     }
+    @DisplayName("Deve obter informações de um livro")
+    @Test
+    public void getBookDetailsTest() throws Exception{
+        Long id = Long.valueOf(11);
+        Book book = Book.builder().id(id)
+                .title(createNewBook().getTitle())
+                .author(createNewBook().getAuthor()
+                ).isbn(createNewBook().getIsbn()).build();
+        BDDMockito.given(bookService.getById(id)).willReturn(Optional.of(book));
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(BOOK_API.concat("/" + id))
+                .accept(MediaType.APPLICATION_JSON);
+        mockMvc.perform(request)
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("id").value(id))
+                .andExpect(jsonPath("title").value(createNewBook().getTitle()))
+                .andExpect(jsonPath("author").value(createNewBook().getAuthor()))
+                .andExpect(jsonPath("isbn").value(createNewBook().getIsbn()));
+    }
+    @DisplayName("deve encontrar resource not found quando o livro procurado não existir")
+    @Test
+    public void bookNotFoundTest() throws Exception {
+        BDDMockito.given(bookService.getById(Mockito.anyLong())).willReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(BOOK_API.concat("/" + 1))
+                .accept(MediaType.APPLICATION_JSON);
+        mockMvc.perform(request)
+                .andExpect(status().isNotFound());
+    }
+    @DisplayName("deve deletar um livro")
+    @Test
+    public void deleteBookTest() throws Exception {
+        BDDMockito.given(bookService.getById(Mockito.anyLong())).willReturn(Optional.of(Book.builder().id(1L).build()));
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .delete(BOOK_API.concat("/" + 1));
+        mockMvc.perform(request)
+                .andExpect(status().isNoContent());
+    }
+    @DisplayName("deve retornar resource not foud qaundo não encontar um livro")
+    @Test
+    public void deleteBookTestNoContent() throws Exception {
+        BDDMockito.given(bookService.getById(Mockito.anyLong())).willReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .delete(BOOK_API.concat("/" + 1));
+        mockMvc.perform(request)
+                .andExpect(status().isNotFound());
+    }
+    @DisplayName("deve realizar um update de um livro")
+    @Test
+    public void updateBookTest() throws Exception {
+        Long id = Long.valueOf(11);
+        Book updateBook = Book.builder().id(id)
+                .title("Some Title")
+                .author("Some Author")
+                .isbn("123")
+                .build();
+        String json = new ObjectMapper().writeValueAsString(createNewBook());
+        BDDMockito.given(bookService.getById(Mockito.anyLong())).willReturn(
+                Optional.of(updateBook));
+        BDDMockito.given(bookService.update(updateBook)).willReturn(createNewBook());
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(BOOK_API.concat("/" + 1))
+                .content(json)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("id").value(id))
+                .andExpect(jsonPath("title").value(createNewBook().getTitle()))
+                .andExpect(jsonPath("author").value(createNewBook().getAuthor()))
+                .andExpect(jsonPath("isbn").value(createNewBook().getIsbn()));
+    }
+    @Test
+    @DisplayName("Deve atualizar um livro ao tentar atualizar um livro existente")
+    public void updateInexistenteBook() throws Exception {
+        BDDMockito.given(bookService.getById(Mockito.anyLong())).willReturn(
+                Optional.empty());
+        String json = new ObjectMapper().writeValueAsString(createNewBook());
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(BOOK_API.concat("/" + 1))
+                .content(json)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON);
+        mockMvc.perform(request)
+                .andExpect(status().isNotFound());
+    }
 
     private BookDTO createBookDto() {
         return BookDTO.builder()
                 .author("Machado de Assis")
                 .title("O cortiço")
                 .isbn("001").build();
+    }
+    private Book createNewBook(){
+        return Book.builder()
+                .id(11L)
+                .author("Jorge Amado")
+                .isbn("0002")
+                .title("Cpitãoes de Areia")
+                .build();
     }
 
 }
