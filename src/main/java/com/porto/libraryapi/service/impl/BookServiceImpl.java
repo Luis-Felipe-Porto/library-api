@@ -4,6 +4,10 @@ import com.porto.libraryapi.exception.BusinessException;
 import com.porto.libraryapi.model.entity.Book;
 import com.porto.libraryapi.model.repository.BookRepository;
 import com.porto.libraryapi.service.BookService;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -45,5 +49,16 @@ public class BookServiceImpl implements BookService {
         }
         bookRepository.save(book);
         return book;
+    }
+
+    @Override
+    public Page<Book> find(Book bookFilter, Pageable pagable) {
+        Example<Book> example = Example.of(bookFilter,
+                ExampleMatcher.matching()
+                        .withIgnoreCase()
+                        .withIgnoreNullValues()
+                        .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)
+        );
+        return bookRepository.findAll(example,pagable);
     }
 }

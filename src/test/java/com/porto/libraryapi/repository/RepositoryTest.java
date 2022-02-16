@@ -52,6 +52,25 @@ public class RepositoryTest {
         Assertions.assertThat(foundBookId.isPresent()).isTrue();
 
     }
+    @Test
+    @DisplayName("Deve salvar um livro")
+    public void testSavedBook(){
+        Book book = getBookValid();
+        Book savedBook = bookRepository.save(book);
+        Assertions.assertThat(savedBook).isNotNull();
+
+    }
+    @Test
+    @DisplayName("Deve deletar um livro")
+    public void testDeleteBook(){
+        Book book = getBookValid();
+        testEntityManager.persist(book);
+        Book foundBookId = testEntityManager.find(Book.class,book.getId());
+        bookRepository.delete(foundBookId);
+        Book deletedBook = testEntityManager.find(Book.class,book.getId());
+        Assertions.assertThat(deletedBook).isNull();
+
+    }
     private Book getBookValid() {
         return Book.builder().title("Senhor dos Aneis").isbn("098").author("Cris Waalter").build();
     }
