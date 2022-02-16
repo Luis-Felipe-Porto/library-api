@@ -1,8 +1,6 @@
 package com.porto.libraryapi.resource;
 
 import com.porto.libraryapi.DTO.BookDTO;
-import com.porto.libraryapi.exception.ApiErros;
-import com.porto.libraryapi.exception.BusinessException;
 import com.porto.libraryapi.model.entity.Book;
 import com.porto.libraryapi.service.BookService;
 import org.modelmapper.ModelMapper;
@@ -10,8 +8,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -71,20 +67,6 @@ public class BookController {
                 .collect(Collectors.toList());
         return new PageImpl<BookDTO>(dtoList,pageable, result.getTotalElements());
     }
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiErros handleValidationException(MethodArgumentNotValidException ex){
-        BindingResult bindingResult = ex.getBindingResult();
-        return  new ApiErros(bindingResult);
 
-
-    }
-    @ExceptionHandler(BusinessException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiErros handleBussinesException(BusinessException ex){
-        return  new ApiErros(ex);
-
-
-    }
 
 }
