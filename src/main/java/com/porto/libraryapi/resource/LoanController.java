@@ -1,6 +1,7 @@
 package com.porto.libraryapi.resource;
 
 import com.porto.libraryapi.DTO.LoanDTO;
+import com.porto.libraryapi.DTO.ReturnedLoanDTO;
 import com.porto.libraryapi.model.entity.Book;
 import com.porto.libraryapi.model.entity.Loan;
 import com.porto.libraryapi.service.BookService;
@@ -32,5 +33,10 @@ public class LoanController {
         loan = loanService.save(loan);
         return loan.getId();
     }
-
+    @PatchMapping("{id}")
+    public void returnBook(@PathVariable Long id, @RequestBody ReturnedLoanDTO dto){
+        Loan loan = loanService.getById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        loan.setReturned(dto.getReturned());
+        loanService.update(loan);
+    }
 }
