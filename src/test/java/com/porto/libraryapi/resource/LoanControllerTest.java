@@ -2,6 +2,7 @@ package com.porto.libraryapi.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.porto.libraryapi.DTO.LoanDTO;
+import com.porto.libraryapi.DTO.LoanFilterDTO;
 import com.porto.libraryapi.DTO.ReturnedLoanDTO;
 import com.porto.libraryapi.exception.BusinessException;
 import com.porto.libraryapi.model.entity.Book;
@@ -18,6 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -26,8 +30,10 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Optional;
 
+import static com.porto.libraryapi.resource.BookControllerTest.BOOK_API;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
@@ -133,5 +139,37 @@ public class LoanControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json)
         ).andExpect(status().isNotFound());
+    }
+    @Test
+    @DisplayName("Deve filtrar emprestimos")
+    public void testeFilterBook() throws Exception{
+        Long id = 1L;
+        Loan loan = createLoan();
+        loan.setId(1L);
+        Book book = Book.builder().id(1L).isbn("40028922").build();
+        loan.setBook(book);
+
+        BDDMockito.given(loanService.find(Mockito.any(LoanFilterDTO.class),Mockito.any(Pageable.class)))
+                .willReturn(new PageImpl<Loan>(Arrays.asList(loan), PageRequest.of(0,10),1));
+
+        String queryString = String.format("?isbn=%s&customer=0&size=10",
+                book.getIsbn(),loan.getCustumer());
+
+        MockHttpServletRequestBuilder requestFilter = MockMvcRequestBuilders.get(LOAN_API.concat(queryString))
+                .accept(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(requestFilter)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("content",Matchers.hasSize(1)))
+                .andExpect(jsonPath("totalElements").value(1))
+                .andExpect(jsonPath("pageable.pageSize").value(10))
+                .andExpect(jsonPath("pageable.pageNumber").value(0));
+    }
+    private Loan createLoan(){
+        return  Loan
+                .builder()
+                .book(Book.builder().build())
+                .dataEmprestimo(LocalDate.now())
+                .custumer("Fulano").build();
     }
 }
