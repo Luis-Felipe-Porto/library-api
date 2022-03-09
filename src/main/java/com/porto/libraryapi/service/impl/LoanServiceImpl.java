@@ -2,16 +2,19 @@ package com.porto.libraryapi.service.impl;
 
 import com.porto.libraryapi.DTO.LoanFilterDTO;
 import com.porto.libraryapi.exception.BusinessException;
+import com.porto.libraryapi.model.entity.Book;
 import com.porto.libraryapi.model.entity.Loan;
 import com.porto.libraryapi.model.repository.LoanRepository;
 import com.porto.libraryapi.service.LoanService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-
+@Service
 public class LoanServiceImpl implements LoanService {
-    private final LoanRepository loanRepository;
+
+    private LoanRepository loanRepository;
 
     public LoanServiceImpl(LoanRepository loanRepository) {
         this.loanRepository = loanRepository;
@@ -38,5 +41,10 @@ public class LoanServiceImpl implements LoanService {
     @Override
     public Page<Loan> find(LoanFilterDTO filterDTO, Pageable pageable) {
         return loanRepository.findByBookIsbnOrCustomer(filterDTO.getIsbn(), filterDTO.getCustomer(), pageable);
+    }
+
+    @Override
+    public Page<Loan> getLoansByBook(Book book, Pageable pageable) {
+        return loanRepository.findbyBook(book,pageable);
     }
 }
