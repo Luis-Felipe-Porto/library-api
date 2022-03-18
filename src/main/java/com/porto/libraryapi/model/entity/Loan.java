@@ -27,4 +27,6 @@ public class Loan {
     private LocalDate dataEmprestimo;
     @Column
     private Boolean returned;
+    @Column(name="customer_email")
+    private String customerEmail;
 }

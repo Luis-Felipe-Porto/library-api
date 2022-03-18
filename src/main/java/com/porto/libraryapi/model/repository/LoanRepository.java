@@ -9,6 +9,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @Repository
 public interface LoanRepository extends JpaRepository<Loan,Long> {
     Loan save(Loan loan);
@@ -18,5 +21,7 @@ public interface LoanRepository extends JpaRepository<Loan,Long> {
     @Query(value = "select l from Loan as l join l.book as b where b.isbn = :isbn or l.custumer =:customer")
     Page<Loan> findByBookIsbnOrCustomer(@Param("isbn") String isbn,@Param("customer") String customer, Pageable pageRequest);
 
-    Page<Loan> findbyBook(Book book, Pageable pageable);
+    Page<Loan> findByBook(Book book, Pageable pageable);
+    @Query("select l from Loan l where l.dataEmprestimo <= :threDaysAgo and (l.returned is null or l.returned is false)")
+    List<Loan> findByLoanDateLessThanAndNotReturned(@Param("threDaysAgo") LocalDate threDaysAgo);
 }
