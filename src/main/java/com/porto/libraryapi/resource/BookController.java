@@ -6,6 +6,10 @@ import com.porto.libraryapi.model.entity.Book;
 import com.porto.libraryapi.model.entity.Loan;
 import com.porto.libraryapi.service.BookService;
 import com.porto.libraryapi.service.LoanService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -22,6 +26,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/books")
 @RequiredArgsConstructor
+@Api("BOOK API")
 public class BookController {
 
     private final BookService bookService;
@@ -29,6 +34,7 @@ public class BookController {
     private final ModelMapper modelMapper;
 
     @GetMapping("{id}")
+    @ApiOperation("Obtains Books")
     public BookDTO get(@PathVariable Long id){
         return bookService.getById(id)
                 .map(book -> modelMapper.map(book,BookDTO.class))
@@ -43,6 +49,10 @@ public class BookController {
     }
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @ApiOperation("Create Book")
+    @ApiResponses({
+            @ApiResponse(code = 201,message = "Criando um book retornar codigo status 201")
+    })
     public BookDTO create(@RequestBody @Valid BookDTO bookDTO){
         Book book = modelMapper.map(bookDTO,Book.class);
         book = bookService.save(book);

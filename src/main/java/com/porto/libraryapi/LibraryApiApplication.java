@@ -17,20 +17,20 @@ import java.util.List;
 @SpringBootApplication
 @EnableScheduling
 public class LibraryApiApplication {
-    @Autowired
-    private EmailService emailService;
+//    @Autowired
+//    private EmailService emailService;
     @Bean
     public ModelMapper modelMapper(){
         return new ModelMapper();
     }
-    @Bean
-    public CommandLineRunner runner(){
-        return args -> {
-            List<String> mails = Arrays.asList("0832f1e3e3-d1778b@inbox.mailtrap.io");
-            emailService.sendEmail("Testando servico de email",mails);
-            System.out.println("EMAIL ENVIADO");
-        };
-    }
+//    @Bean
+//    public CommandLineRunner runner(){
+//        return args -> {
+//            List<String> mails = Arrays.asList("0832f1e3e3-d1778b@inbox.mailtrap.io");
+//            emailService.sendEmail("Testando servico de email",mails);
+//            System.out.println("EMAIL ENVIADO");
+//        };
+//    }
     public static void main(String[] args) {
         SpringApplication.run(LibraryApiApplication.class, args);
     }
